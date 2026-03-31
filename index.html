@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Meal Planner — Recomposition</title>
+<meta name="description" content="90 recettes compatibles reflux gastrique. Planificateur de repas avec liste de courses partageable.">
+<meta property="og:title" content="Meal Planner — Recomposition">
+<meta property="og:description" content="Liste de courses partagee">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥗</text></svg>">
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--accent:#E07A24;--pri:#1B3A4B;--sec:#3D7EA6;--bdr:#e2e6ea;--tx:#2c2c2c;--mu:#888;--grn:#2E8B57;--red:#c0392b}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--tx);max-width:640px;margin:0 auto;padding-bottom:72px}
+.nav{display:flex;position:sticky;top:0;z-index:10;background:var(--pri)}.nb{flex:1;padding:11px 2px;text-align:center;font-size:11px;font-weight:700;color:rgba(255,255,255,.45);cursor:pointer;border:none;background:none;position:relative;transition:.2s}.nb.on{color:#fff}.nb.on::after{content:'';position:absolute;bottom:0;left:15%;right:15%;height:3px;background:var(--accent);border-radius:2px 2px 0 0}.nb .bdg{position:absolute;top:3px;right:8%;background:var(--accent);color:#fff;font-size:9px;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.pg{display:none;padding:12px}.pg.on{display:block}h2{font-size:16px;color:var(--pri);margin:6px 0 10px}
+.sbar{display:flex;gap:6px;margin-bottom:10px;background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:8px 10px;align-items:center;flex-wrap:wrap}.sbar label{font-size:11px;color:var(--mu);font-weight:600}.sbar select{border:1px solid var(--bdr);border-radius:6px;padding:4px 6px;font-size:13px;font-weight:700;color:var(--pri);background:var(--card)}.sbar .sep{width:1px;height:20px;background:var(--bdr)}
+.sb{width:100%;padding:8px 12px;border:1px solid var(--bdr);border-radius:10px;font-size:14px;margin-bottom:8px;outline:none;background:var(--card)}.sb:focus{border-color:var(--sec)}
+.toolbar{display:flex;gap:6px;margin-bottom:10px}.tbtn{padding:5px 10px;border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer;background:var(--card);color:var(--mu);font-weight:600}.tbtn:active{background:var(--bg)}
+.csec{margin-bottom:12px;border:1px solid var(--bdr);border-radius:10px;overflow:hidden}
+.csh{padding:10px 14px;background:var(--card);cursor:pointer;display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;border-bottom:1px solid var(--bdr)}.csh .arr{font-size:11px;color:var(--mu);transition:transform .2s}.csh .arr.open{transform:rotate(90deg)}.csh .cnt{font-size:11px;color:var(--mu);font-weight:600;margin-left:auto}
+.csh.dej{color:#185FA5;border-left:4px solid #185FA5}.csh.coll{color:#3B6D11;border-left:4px solid #3B6D11}.csh.din{color:#854F0B;border-left:4px solid #854F0B}
+.csb{display:none;background:var(--bg);padding:6px}.csb.open{display:block}
+.rc{background:var(--card);border:1px solid var(--bdr);border-radius:8px;margin-bottom:6px;overflow:hidden}
+.rch{padding:8px 10px;display:flex;align-items:center;gap:6px}.rch .arrow{font-size:10px;color:var(--mu);transition:transform .2s;cursor:pointer;padding:4px}.rch .arrow.open{transform:rotate(90deg)}.rcn{flex:1;font-size:12px;font-weight:700;cursor:pointer}
+.tg{font-size:8px;padding:2px 6px;border-radius:6px;font-weight:700}.tg.m{background:var(--bg);color:var(--mu)}
+.cart-btn{width:26px;height:26px;border-radius:50%;border:none;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s}.cart-btn.add{background:var(--grn);color:#fff}.cart-btn.rm{background:var(--red);color:#fff}.cart-btn:active{transform:scale(.9)}
+.rcb{display:none;padding:8px 10px;border-top:1px solid var(--bdr);font-size:12px}.rcb.open{display:block}
+.rcb .ing{padding:2px 0;display:flex;justify-content:space-between}.rcb .ing .q{font-weight:700;color:var(--pri)}
+.rcb .steps{margin-top:8px;padding:8px 10px;background:var(--bg);border-radius:6px}
+.rcb .step{padding:3px 0;display:flex;gap:6px;font-size:11px;line-height:1.4}.rcb .step .sn{font-weight:700;color:var(--accent);min-width:16px}
+.rcb .pnote{font-size:10px;color:var(--accent);margin-top:4px;font-weight:600}
+.ci{display:flex;align-items:center;padding:8px 10px;background:var(--card);border:1px solid var(--bdr);border-radius:8px;margin-bottom:4px;gap:6px}.ci .nm{flex:1;font-size:12px;font-weight:600}.ci .ct{font-size:9px;padding:2px 6px;border-radius:6px;font-weight:700}.ci.dej .ct{background:#E6F1FB;color:#185FA5}.ci.coll .ct{background:#EAF3DE;color:#3B6D11}.ci.din .ct{background:#FAEEDA;color:#854F0B}.ci .prs{font-size:11px;color:var(--mu)}.ci .x{background:none;border:none;font-size:16px;color:var(--red);cursor:pointer;padding:2px 6px}
+.empty{text-align:center;padding:30px;color:var(--mu);font-size:13px}
+.genb{width:100%;padding:11px;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;margin:6px 0}.genb:active{opacity:.8}.genb.pri{background:var(--pri)}.genb.exp{background:var(--accent)}.genb.share{background:var(--sec)}
+.sray{margin-bottom:8px}.srh{background:var(--accent);color:#fff;padding:6px 10px;border-radius:6px 6px 0 0;font-weight:700;font-size:11px;display:flex;justify-content:space-between}.srb{background:var(--card);border:1px solid var(--bdr);border-top:none;border-radius:0 0 6px 6px;display:flex;flex-direction:column}
+.si{display:flex;align-items:center;padding:7px 10px;border-bottom:1px solid var(--bdr);gap:6px;cursor:pointer;transition:.15s}.si:last-child{border:none}.si:active{background:#f0f4f8}.si.dn{background:#f0f0f0;order:999}.si.dn .sn{text-decoration:line-through;color:var(--mu)}.si.dn .sq{text-decoration:line-through;color:var(--mu)}
+.ck{width:18px;height:18px;border:2px solid var(--bdr);border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center}.si.dn .ck{background:var(--grn);border-color:var(--grn)}.si.dn .ck::after{content:'';width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);margin-top:-1px}
+.sn{flex:1;font-size:12px}.sq{font-size:11px;font-weight:700;color:var(--pri);white-space:nowrap}.sr{font-size:9px;color:var(--mu);font-style:italic}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--pri);color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:20;display:none}
+.shared-banner{background:var(--sec);color:#fff;padding:10px 14px;text-align:center;font-size:12px;font-weight:600;display:none}
+@media print{.nav,.sbar,.sb,.toolbar,.cart-btn,.genb,.toast,.shared-banner,#p-recipes,#p-cart{display:none!important}#p-shop{display:block!important}.si{break-inside:avoid}body{max-width:100%;padding:0}.ck{border:2px solid #333!important}.si.dn .ck{background:#fff!important;border-color:#333!important}.si.dn .ck::after{border-color:#333!important}h2{margin-top:10px}}
+</style>
+</head>
+<body>
+
+<div class="shared-banner" id="shared-banner">Liste partagee chargee ! Tu peux cocher les articles au fur et a mesure.</div>
+
+<nav class="nav">
+<button class="nb on" onclick="go('recipes')">Recettes</button>
+<button class="nb" onclick="go('cart')">Panier<span class="bdg" id="cbdg" style="display:none">0</span></button>
+<button class="nb" onclick="go('shop')">Courses</button>
+</nav>
+
+<div class="pg on" id="p-recipes">
+<h2>90 recettes — compatible reflux</h2>
+<div class="sbar">
+<label>Portions :</label>
+<label>Dej</label><select id="sv-dej" onchange="saveSt()"><option>1</option><option>2</option><option>3</option><option>4</option></select>
+<div class="sep"></div>
+<label>Coll</label><select id="sv-coll" onchange="saveSt()"><option>1</option><option>2</option><option>3</option><option>4</option></select>
+<div class="sep"></div>
+<label>Din</label><select id="sv-din" onchange="saveSt()"><option>1</option><option selected>2</option><option>3</option><option>4</option></select>
+</div>
+<input class="sb" id="search" placeholder="Rechercher une recette..." oninput="renderR()">
+<div class="toolbar">
+<div class="tbtn" onclick="expandAll()">Tout derouler</div>
+<div class="tbtn" onclick="collapseAll()">Tout replier</div>
+</div>
+<div id="rlist"></div>
+</div>
+
+<div class="pg" id="p-cart">
+<h2>Mon panier</h2>
+<div id="cartlist"></div>
+<button class="genb pri" onclick="go('shop')" id="gen-btn" style="display:none">Voir la liste de courses</button>
+<button class="genb share" onclick="shareList()" id="share-btn" style="display:none">Envoyer la liste a quelqu'un</button>
+</div>
+
+<div class="pg" id="p-shop">
+<h2>Liste de courses</h2>
+<div id="shop-summary" style="text-align:center;margin-bottom:8px;font-size:13px;font-weight:700;color:var(--pri)"></div>
+<div id="shoplist"></div>
+<button class="genb exp" onclick="window.print()" id="exp-btn" style="display:none">Imprimer / PDF</button>
+<button class="genb share" onclick="shareList()" id="share-btn2" style="display:none">Envoyer cette liste</button>
+<div style="text-align:center;margin-top:8px"><span class="tbtn" onclick="razShop()" id="raz-btn" style="display:none">Tout decocher</span></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var RECIPES=[
+// ========== DEJEUNERS (30) ==========
+// Each: ~700kcal, ~50g prot for 1 person
+{id:1,n:"Poulet herbes de Provence, riz, carottes-courgettes",c:"dej",kcal:690,p:52,l:18,g:75,
+i:[["Blanc de poulet",200,"g",0],["Riz basmati",80,"g",5],["Courgettes",150,"g",3],["Carottes",100,"g",3],["Huile d'olive",12,"ml",7],["Sauce soja",15,"ml",7],["Herbes de Provence",2,"g",7],["Ail",5,"g",3]],
+s:"Mariner poulet (sauce soja, herbes, ail). Cuire riz. Poeler legumes a l'huile d'olive. Saisir poulet 4-5 min/face."},
+
+{id:2,n:"Omelette champignons-epinards, pain complet",c:"dej",kcal:650,p:44,l:28,g:50,
+i:[["Oeufs",4,"pc",2],["Blancs d'oeufs",2,"pc",2],["Champignons",80,"g",3],["Epinards",100,"g",4],["Pain complet",60,"g",5],["Huile d'olive",5,"ml",7]],
+s:"Revenir champignons + epinards a la poele. Verser oeufs battus, cuire feu moyen, plier en omelette."},
+
+{id:3,n:"Steak hache 5%MG, lentilles, salade verte",c:"dej",kcal:700,p:58,l:18,g:68,
+i:[["Steak hache 5%MG",250,"g",0],["Lentilles vertes",80,"g",5],["Mache",60,"g",3],["Concombre",80,"g",3],["Huile d'olive",12,"ml",7],["Moutarde de Dijon",5,"g",7]],
+s:"Cuire lentilles 20 min. Saisir steaks 3 min/face. Salade avec vinaigrette douce (huile + moutarde)."},
+
+{id:4,n:"Bowl poulet teriyaki doux, riz, edamame",c:"dej",kcal:730,p:58,l:14,g:82,
+i:[["Blanc de poulet",200,"g",0],["Riz basmati",80,"g",5],["Edamame surgeles",100,"g",4],["Concombre",50,"g",3],["Sauce soja",20,"ml",7],["Miel",8,"g",7],["Vinaigre de riz",5,"ml",7],["Gingembre frais",3,"g",3],["Graines de sesame",5,"g",6]],
+s:"Cuire poulet en morceaux. Sauce: soja + miel + vinaigre riz + gingembre. Carameliser 2 min. Servir sur riz avec edamame et concombre."},
+
+{id:5,n:"Maquereau grille, salade de lentilles tiede",c:"dej",kcal:680,p:48,l:28,g:48,
+i:[["Filets de maquereau",200,"g",1],["Lentilles vertes",80,"g",5],["Carottes",80,"g",3],["Persil frais",5,"g",3],["Huile d'olive",12,"ml",7],["Moutarde de Dijon",5,"g",7],["Herbes de Provence",2,"g",7]],
+s:"Griller maquereau 3-4 min/face, herbes de Provence. Lentilles cuites + carottes rapees + persil + vinaigrette moutarde."},
+
+{id:6,n:"Tortilla espagnole, salade verte",c:"dej",kcal:620,p:34,l:28,g:58,
+i:[["Oeufs",4,"pc",2],["Blancs d'oeufs",1,"pc",2],["Pommes de terre",150,"g",3],["Oignon",50,"g",3],["Huile d'olive",12,"ml",7],["Mache",50,"g",3],["Concombre",60,"g",3]],
+s:"PDT en rondelles fines, cuire a la poele + oignon emince. Verser oeufs battus, cuire feu doux 5 min, retourner 3 min. Salade a cote."},
+
+{id:7,n:"Merlu poele, puree patate douce, epinards",c:"dej",kcal:680,p:48,l:20,g:72,
+i:[["Filets de merlu surgele",250,"g",1],["Patate douce",250,"g",3],["Epinards surgeles",150,"g",4],["Beurre",10,"g",2],["Muscade",1,"g",7],["Huile d'olive",10,"ml",7],["Aneth",2,"g",7]],
+s:"Cuire patate douce 15 min a l'eau, ecraser avec beurre et muscade. Poeler merlu 4 min/face avec aneth. Rechauffer epinards."},
+
+{id:8,n:"Poulet curry doux, semoule, courgettes",c:"dej",kcal:700,p:54,l:18,g:74,
+i:[["Blanc de poulet",200,"g",0],["Semoule complete",70,"g",5],["Courgettes",150,"g",3],["Creme legere 15%",50,"ml",2],["Oignon",30,"g",3],["Huile d'olive",8,"ml",7],["Curry doux",3,"g",7]],
+s:"Saisir poulet en lanieres. Revenir oignon, ajouter curry doux + creme. Mijoter 5 min. Semoule a l'eau bouillante. Courgettes poelees."},
+
+{id:9,n:"Riz saut aux oeufs et legumes",c:"dej",kcal:660,p:32,l:22,g:82,
+i:[["Oeufs",3,"pc",2],["Riz basmati",100,"g",5],["Carottes",80,"g",3],["Courgettes",100,"g",3],["Petits pois surgeles",80,"g",4],["Sauce soja",15,"ml",7],["Huile de sesame",5,"ml",7],["Huile d'olive",8,"ml",7]],
+s:"Cuire riz et refroidir. Poeler legumes coupes en des. Pousser sur le cote, brouiller oeufs. Melanger le tout, sauce soja + huile sesame."},
+
+{id:10,n:"Dinde moutarde-miel, quinoa, fenouil",c:"dej",kcal:690,p:52,l:16,g:76,
+i:[["Escalope de dinde",200,"g",0],["Quinoa",70,"g",5],["Fenouil",200,"g",3],["Moutarde de Dijon",10,"g",7],["Miel",8,"g",7],["Huile d'olive",10,"ml",7]],
+s:"Saisir dinde. Glacer avec moutarde + miel. Quinoa cuit 12 min. Fenouil emince braise a la poele."},
+
+{id:11,n:"Sardines grillees, riz complet, salade",c:"dej",kcal:670,p:42,l:26,g:62,
+i:[["Sardines fraiches",250,"g",1],["Riz complet",70,"g",5],["Mache",50,"g",3],["Concombre",80,"g",3],["Huile d'olive",10,"ml",7],["Herbes de Provence",2,"g",7]],
+s:"Griller sardines a la poele 3 min/face, herbes. Riz complet cuit. Salade verte."},
+
+{id:12,n:"Poulet pesto maison (sans ail cru), pates completes",c:"dej",kcal:720,p:52,l:22,g:76,
+i:[["Blanc de poulet",200,"g",0],["Pates completes",80,"g",5],["Basilic frais",10,"g",3],["Parmesan rape",15,"g",2],["Huile d'olive",12,"ml",7],["Noix",10,"g",6]],
+s:"Mixer basilic + parmesan + huile + noix pour un pesto doux. Cuire pates et poulet. Melanger."},
+
+{id:13,n:"Wrap poulet-avocat (tortilla ble complet)",c:"dej",kcal:710,p:48,l:26,g:68,
+i:[["Blanc de poulet",180,"g",0],["Tortilla ble complet",80,"g",5],["Avocat",70,"g",3],["Mache",30,"g",3],["Carotte rapee",50,"g",3],["Moutarde de Dijon",5,"g",7]],
+s:"Cuire poulet en lanieres. Tartiner tortilla de moutarde, disposer poulet, avocat ecrase, mache, carottes. Rouler."},
+
+{id:14,n:"Salade nicoise revisee (sans tomate)",c:"dej",kcal:680,p:44,l:28,g:56,
+i:[["Oeufs",3,"pc",2],["Thon en conserve au naturel",120,"g",5],["Pommes de terre",150,"g",3],["Haricots verts surgeles",100,"g",4],["Mache",50,"g",3],["Huile d'olive",15,"ml",7],["Moutarde de Dijon",5,"g",7]],
+s:"Cuire oeufs durs et PDT. Haricots verts vapeur. Assembler salade, emietter thon. Vinaigrette douce."},
+
+{id:15,n:"Galettes de courgettes, oeuf au plat, riz",c:"dej",kcal:650,p:34,l:24,g:72,
+i:[["Courgettes",200,"g",3],["Oeufs",3,"pc",2],["Farine complete",30,"g",5],["Parmesan rape",15,"g",2],["Riz basmati",70,"g",5],["Huile d'olive",12,"ml",7]],
+s:"Raper courgettes, essorer, melanger avec 1 oeuf + farine + parmesan. Former galettes, poeler. Riz + oeuf au plat a cote."},
+
+{id:16,n:"Boeuf hache, puree de carottes, haricots verts",c:"dej",kcal:700,p:50,l:22,g:68,
+i:[["Boeuf hache 5%MG",200,"g",0],["Carottes",300,"g",3],["Haricots verts surgeles",150,"g",4],["Beurre",10,"g",2],["Muscade",1,"g",7],["Huile d'olive",8,"ml",7]],
+s:"Cuire carottes 15 min, ecraser en puree + beurre + muscade. Saisir boeuf. Haricots verts vapeur."},
+
+{id:17,n:"Filet de lieu noir, ecrase de PDT, brocoli",c:"dej",kcal:640,p:46,l:16,g:70,
+i:[["Filet de lieu noir surgele",200,"g",1],["Pommes de terre",200,"g",3],["Brocoli surgele",150,"g",4],["Huile d'olive",10,"ml",7],["Aneth",2,"g",7],["Creme legere 15%",30,"ml",2]],
+s:"Cuire PDT, ecraser grossierement avec creme. Poeler lieu noir 4 min/face. Brocoli vapeur."},
+
+{id:18,n:"Poulet grille, taboulet de quinoa (sans tomate)",c:"dej",kcal:710,p:54,l:20,g:72,
+i:[["Blanc de poulet",200,"g",0],["Quinoa",80,"g",5],["Concombre",80,"g",3],["Persil frais",10,"g",3],["Menthe fraiche",5,"g",3],["Huile d'olive",15,"ml",7],["Herbes de Provence",2,"g",7]],
+s:"Cuire quinoa, refroidir. Concombre en des + herbes fraiches + huile. Poulet grille a cote."},
+
+{id:19,n:"Oeufs brouilles, avocat, pain complet",c:"dej",kcal:680,p:36,l:34,g:52,
+i:[["Oeufs",4,"pc",2],["Avocat",80,"g",3],["Pain complet",60,"g",5],["Ciboulette",5,"g",3],["Beurre",8,"g",2]],
+s:"Oeufs brouilles au beurre, ciboulette. Toast pain complet. Avocat en tranches."},
+
+{id:20,n:"Cabillaud pane maison, frites de patate douce",c:"dej",kcal:700,p:46,l:20,g:76,
+i:[["Filet de cabillaud",200,"g",1],["Patate douce",200,"g",3],["Chapelure complete",30,"g",5],["Oeufs",1,"pc",2],["Huile d'olive",15,"ml",7],["Aneth",2,"g",7]],
+s:"Paner cabillaud (oeuf puis chapelure). Poeler. Patate douce en frites au four 25 min a 200°C."},
+
+{id:21,n:"Risotto champignons au poulet",c:"dej",kcal:720,p:50,l:18,g:82,
+i:[["Blanc de poulet",180,"g",0],["Riz arborio",90,"g",5],["Champignons",120,"g",3],["Oignon",30,"g",3],["Parmesan rape",15,"g",2],["Bouillon de volaille",300,"ml",7],["Huile d'olive",10,"ml",7]],
+s:"Revenir oignon + champignons. Ajouter riz, mouiller au bouillon peu a peu. Ajouter poulet cuit en des. Finir au parmesan."},
+
+{id:22,n:"Salade tiede poulet, patate douce, epinards",c:"dej",kcal:680,p:50,l:20,g:66,
+i:[["Blanc de poulet",200,"g",0],["Patate douce",200,"g",3],["Epinards frais",80,"g",3],["Noix",10,"g",6],["Huile d'olive",12,"ml",7],["Moutarde de Dijon",5,"g",7]],
+s:"Cuire patate douce en cubes au four. Griller poulet en lanieres. Assembler sur epinards, noix, vinaigrette."},
+
+{id:23,n:"Dinde eminee, riz complet, carottes glacees",c:"dej",kcal:690,p:52,l:14,g:80,
+i:[["Escalope de dinde",200,"g",0],["Riz complet",80,"g",5],["Carottes",200,"g",3],["Miel",5,"g",7],["Beurre",8,"g",2],["Thym",2,"g",7]],
+s:"Carottes en rondelles glacees a la poele (beurre + miel + thym). Dinde eminee saisie. Riz complet."},
+
+{id:24,n:"Buddha bowl saumon fume, quinoa, avocat",c:"dej",kcal:710,p:40,l:30,g:68,
+i:[["Saumon fume",100,"g",1],["Quinoa",70,"g",5],["Avocat",70,"g",3],["Concombre",80,"g",3],["Carotte rapee",60,"g",3],["Graines de sesame",5,"g",6],["Sauce soja",10,"ml",7]],
+s:"Cuire quinoa. Assembler en bowl: quinoa, saumon, avocat, concombre, carottes. Sauce soja + sesame."},
+
+{id:25,n:"Croque-monsieur complet (jambon-fromage)",c:"dej",kcal:680,p:38,l:28,g:64,
+i:[["Jambon blanc",80,"g",0],["Emmental rape",40,"g",2],["Pain complet",120,"g",5],["Bechamel legere",40,"ml",2],["Mache",40,"g",3]],
+s:"Pain complet + bechamel + jambon + emmental. Passer au four 10 min a 200°C. Salade a cote."},
+
+{id:26,n:"Pave de truite, boulgour, fenouil braise",c:"dej",kcal:660,p:46,l:18,g:70,
+i:[["Filets de truite",200,"g",1],["Boulgour",70,"g",5],["Fenouil",200,"g",3],["Huile d'olive",10,"ml",7],["Aneth",2,"g",7]],
+s:"Boulgour cuit 10 min. Fenouil braise couvert 15 min. Truite poelée 4 min/face, aneth."},
+
+{id:27,n:"Poulet au thym, ecrase de pois casses",c:"dej",kcal:700,p:56,l:16,g:74,
+i:[["Blanc de poulet",200,"g",0],["Pois casses",80,"g",5],["Carottes",100,"g",3],["Thym",2,"g",7],["Huile d'olive",10,"ml",7]],
+s:"Cuire pois casses 45 min avec carottes, ecraser. Poulet grille au thym."},
+
+{id:28,n:"Bolognaise de dinde (sans tomate), tagliatelles",c:"dej",kcal:710,p:52,l:18,g:78,
+i:[["Dinde hachee",200,"g",0],["Tagliatelles completes",80,"g",5],["Carottes",80,"g",3],["Courgettes",80,"g",3],["Oignon",30,"g",3],["Bouillon de volaille",100,"ml",7],["Huile d'olive",10,"ml",7]],
+s:"Revenir oignon + carottes + courgettes en des. Ajouter dinde hachee, bouillon. Mijoter 15 min. Servir sur pates."},
+
+{id:29,n:"Salade cesar allegee (sans croutons frits)",c:"dej",kcal:650,p:48,l:26,g:52,
+i:[["Blanc de poulet",200,"g",0],["Laitue romaine",100,"g",3],["Parmesan rape",20,"g",2],["Pain complet",40,"g",5],["Oeufs",1,"pc",2],["Huile d'olive",12,"ml",7],["Moutarde de Dijon",5,"g",7]],
+s:"Griller poulet. Toaster pain en des au four. Sauce: oeuf dur ecrase + moutarde + huile + parmesan. Assembler."},
+
+{id:30,n:"Filet mignon de porc, puree de panais, brocoli",c:"dej",kcal:690,p:50,l:20,g:68,
+i:[["Filet mignon de porc",200,"g",0],["Panais",200,"g",3],["Brocoli surgele",150,"g",4],["Beurre",10,"g",2],["Muscade",1,"g",7],["Huile d'olive",8,"ml",7],["Thym",2,"g",7]],
+s:"Saisir filet mignon, finir au four 15 min a 180°C. Panais cuits, ecrases au beurre. Brocoli vapeur."},
+
+// ========== COLLATIONS (30) ==========
+// Each: ~250kcal, ~22g prot for 1 person
+{id:31,n:"Skyr nature + amandes",c:"coll",kcal:230,p:24,l:10,g:12,
+i:[["Skyr nature",200,"g",2],["Amandes",15,"g",6]],
+s:""},
+
+{id:32,n:"Fromage blanc 0% + noix + miel",c:"coll",kcal:230,p:22,l:8,g:18,
+i:[["Fromage blanc 0%",250,"g",2],["Noix",10,"g",6],["Miel",5,"g",7]],
+s:""},
+
+{id:33,n:"Oeufs durs (x3) + banane",c:"coll",kcal:310,p:19,l:15,g:28,
+i:[["Oeufs",3,"pc",2],["Banane",1,"pc",3]],
+s:"Preparer les oeufs durs en avance pour la semaine."},
+
+{id:34,n:"Skyr + banane",c:"coll",kcal:220,p:22,l:2,g:24,
+i:[["Skyr nature",200,"g",2],["Banane",0.5,"pc",3]],
+s:""},
+
+{id:35,n:"Oeufs durs (x2) + compote sans sucre",c:"coll",kcal:220,p:13,l:10,g:18,
+i:[["Oeufs",2,"pc",2],["Compote pomme sans sucre",90,"g",5]],
+s:""},
+
+{id:36,n:"Fromage blanc 0% + amandes",c:"coll",kcal:250,p:24,l:10,g:14,
+i:[["Fromage blanc 0%",250,"g",2],["Amandes",15,"g",6]],
+s:""},
+
+{id:37,n:"Skyr + noix + miel",c:"coll",kcal:250,p:22,l:8,g:22,
+i:[["Skyr nature",200,"g",2],["Noix",10,"g",6],["Miel",5,"g",7]],
+s:""},
+
+{id:38,n:"Tartine fromage frais + jambon blanc",c:"coll",kcal:260,p:20,l:10,g:24,
+i:[["Pain complet",50,"g",5],["Fromage frais type St Moret",30,"g",2],["Jambon blanc",40,"g",0]],
+s:"Tartiner le pain, deposer le jambon."},
+
+{id:39,n:"Fromage blanc + graines de courge + poire",c:"coll",kcal:260,p:22,l:10,g:22,
+i:[["Fromage blanc 0%",250,"g",2],["Graines de courge",10,"g",6],["Poire",1,"pc",3]],
+s:""},
+
+{id:40,n:"Skyr + myrtilles + noisettes",c:"coll",kcal:240,p:22,l:8,g:18,
+i:[["Skyr nature",200,"g",2],["Myrtilles",50,"g",3],["Noisettes",10,"g",6]],
+s:""},
+
+{id:41,n:"Oeuf dur (x2) + avocat en tranches",c:"coll",kcal:280,p:15,l:20,g:6,
+i:[["Oeufs",2,"pc",2],["Avocat",60,"g",3]],
+s:""},
+
+{id:42,n:"Skyr + graines de chia + banane",c:"coll",kcal:260,p:24,l:6,g:28,
+i:[["Skyr nature",200,"g",2],["Graines de chia",8,"g",6],["Banane",0.5,"pc",3]],
+s:"Melanger chia dans le skyr, laisser 5 min gonfler."},
+
+{id:43,n:"Fromage blanc + compote + amandes",c:"coll",kcal:270,p:22,l:10,g:24,
+i:[["Fromage blanc 0%",200,"g",2],["Compote pomme sans sucre",60,"g",5],["Amandes",10,"g",6]],
+s:""},
+
+{id:44,n:"Mini wrap dinde-concombre",c:"coll",kcal:250,p:24,l:8,g:22,
+i:[["Tortilla ble complet",40,"g",5],["Tranche de dinde",60,"g",0],["Concombre",40,"g",3],["Fromage frais",15,"g",2]],
+s:"Tartiner tortilla, rouler avec dinde et concombre."},
+
+{id:45,n:"Cottage cheese + noix de cajou",c:"coll",kcal:240,p:24,l:10,g:10,
+i:[["Cottage cheese",200,"g",2],["Noix de cajou",12,"g",6]],
+s:""},
+
+{id:46,n:"Skyr + flocons d'avoine + cannelle",c:"coll",kcal:280,p:26,l:6,g:32,
+i:[["Skyr nature",200,"g",2],["Flocons d'avoine",20,"g",5],["Cannelle",1,"g",7]],
+s:"Melanger, laisser 5 min."},
+
+{id:47,n:"Fromage blanc + kiwi + amandes",c:"coll",kcal:260,p:22,l:10,g:20,
+i:[["Fromage blanc 0%",250,"g",2],["Kiwi",1,"pc",3],["Amandes",10,"g",6]],
+s:""},
+
+{id:48,n:"Pain complet + beurre de cacahuete + banane",c:"coll",kcal:290,p:12,l:14,g:32,
+i:[["Pain complet",40,"g",5],["Beurre de cacahuete",15,"g",6],["Banane",0.5,"pc",3]],
+s:"Tartiner, tranches de banane dessus."},
+
+{id:49,n:"Oeufs brouilles (x2) + pain complet",c:"coll",kcal:260,p:18,l:14,g:18,
+i:[["Oeufs",2,"pc",2],["Pain complet",30,"g",5],["Beurre",5,"g",2]],
+s:"Oeufs brouilles au beurre, toast."},
+
+{id:50,n:"Skyr + noix du Bresil + miel",c:"coll",kcal:250,p:22,l:10,g:18,
+i:[["Skyr nature",200,"g",2],["Noix du Bresil",10,"g",6],["Miel",5,"g",7]],
+s:""},
+
+{id:51,n:"Fromage blanc + graines de lin + poire",c:"coll",kcal:250,p:22,l:8,g:22,
+i:[["Fromage blanc 0%",250,"g",2],["Graines de lin",8,"g",6],["Poire",1,"pc",3]],
+s:""},
+
+{id:52,n:"Tranches de dinde roulees + fromage frais",c:"coll",kcal:200,p:24,l:8,g:6,
+i:[["Tranche de dinde",80,"g",0],["Fromage frais type St Moret",30,"g",2]],
+s:"Tartiner chaque tranche, rouler."},
+
+{id:53,n:"Overnight oats proteine: skyr + avoine + banane",c:"coll",kcal:300,p:26,l:6,g:38,
+i:[["Skyr nature",150,"g",2],["Flocons d'avoine",30,"g",5],["Banane",0.5,"pc",3],["Lait",50,"ml",2]],
+s:"Melanger le soir, mettre au frigo, manger le lendemain."},
+
+{id:54,n:"Fromage blanc + pomme rapee + cannelle",c:"coll",kcal:230,p:20,l:2,g:28,
+i:[["Fromage blanc 0%",250,"g",2],["Pomme",1,"pc",3],["Cannelle",1,"g",7]],
+s:"Raper la pomme dans le fromage blanc, saupoudrer cannelle."},
+
+{id:55,n:"Skyr + fruits rouges surgeles",c:"coll",kcal:210,p:22,l:2,g:20,
+i:[["Skyr nature",200,"g",2],["Fruits rouges surgeles",80,"g",4]],
+s:"Decongeler les fruits 10 min avant ou melanger congeles."},
+
+{id:56,n:"Galettes de riz + beurre de cacahuete + banane",c:"coll",kcal:260,p:10,l:12,g:30,
+i:[["Galettes de riz",30,"g",5],["Beurre de cacahuete",15,"g",6],["Banane",0.5,"pc",3]],
+s:"Tartiner les galettes."},
+
+{id:57,n:"Cottage cheese + concombre + graines courge",c:"coll",kcal:220,p:22,l:8,g:12,
+i:[["Cottage cheese",200,"g",2],["Concombre",80,"g",3],["Graines de courge",8,"g",6]],
+s:"Concombre en batonnets pour tremper."},
+
+{id:58,n:"Oeuf dur (x2) + houmous + carottes",c:"coll",kcal:270,p:16,l:16,g:16,
+i:[["Oeufs",2,"pc",2],["Houmous",30,"g",5],["Carottes",80,"g",3]],
+s:"Carottes en batonnets, tremper dans houmous."},
+
+{id:59,n:"Fromage blanc + muesli sans sucre",c:"coll",kcal:270,p:22,l:8,g:28,
+i:[["Fromage blanc 0%",200,"g",2],["Muesli sans sucre ajoute",30,"g",5]],
+s:""},
+
+{id:60,n:"Skyr + amandes + compote",c:"coll",kcal:270,p:24,l:10,g:22,
+i:[["Skyr nature",200,"g",2],["Amandes",10,"g",6],["Compote pomme sans sucre",60,"g",5]],
+s:""},
+
+// ========== DINERS (30) ==========
+// Each: ~650kcal, ~45g prot for 1 person (multiply for 2)
+{id:61,n:"Truite au four, patate douce, brocoli",c:"din",kcal:620,p:42,l:20,g:62,
+i:[["Filets de truite",200,"g",1],["Patate douce",200,"g",3],["Brocoli surgele",150,"g",4],["Huile d'olive",10,"ml",7],["Aneth",2,"g",7]],
+s:"Patate douce en rondelles au four 25 min. Truite en papillote 12 min a 200°C. Brocoli vapeur."},
+
+{id:62,n:"Crevettes sautees, quinoa, haricots verts",c:"din",kcal:600,p:50,l:14,g:60,
+i:[["Crevettes surgelees",250,"g",1],["Quinoa",70,"g",5],["Haricots verts surgeles",150,"g",4],["Courgettes",150,"g",3],["Ail",5,"g",3],["Huile d'olive",10,"ml",7],["Persil frais",5,"g",3]],
+s:"Quinoa cuit. Saisir crevettes feu vif + ail + persil. Haricots verts vapeur."},
+
+{id:63,n:"Cabillaud papillote, fenouil braise, riz complet",c:"din",kcal:540,p:44,l:10,g:62,
+i:[["Filet de cabillaud",200,"g",1],["Fenouil",200,"g",3],["Riz complet",60,"g",5],["Huile d'olive",8,"ml",7],["Thym",2,"g",7],["Aneth",2,"g",7]],
+s:"Cabillaud en papillote (thym, aneth). Fenouil braise couvert 15 min. Enfourner papillote 15 min a 180°C."},
+
+{id:64,n:"Dinde moutarde-creme, semoule, courgettes",c:"din",kcal:660,p:50,l:20,g:64,
+i:[["Escalope de dinde",200,"g",0],["Semoule complete",70,"g",5],["Courgettes",150,"g",3],["Creme legere 15%",50,"ml",2],["Oignon",30,"g",3],["Moutarde de Dijon",10,"g",7],["Huile d'olive",8,"ml",7]],
+s:"Saisir dinde, revenir oignon. Ajouter moutarde + creme, mijoter 5 min. Semoule a l'eau bouillante."},
+
+{id:65,n:"Poulet roti, carottes-fenouil au four, riz",c:"din",kcal:680,p:46,l:18,g:72,
+i:[["Haut de cuisse poulet",200,"g",0],["Carottes",200,"g",3],["Fenouil",150,"g",3],["Riz basmati",70,"g",5],["Huile d'olive",10,"ml",7],["Thym",2,"g",7]],
+s:"Poulet + legumes dans un plat au four 30 min a 200°C. Riz a cote."},
+
+{id:66,n:"Boeuf saute wok, brocoli-carottes, nouilles de riz",c:"din",kcal:670,p:50,l:20,g:68,
+i:[["Bavette de boeuf",200,"g",0],["Brocoli surgele",100,"g",4],["Carottes",100,"g",3],["Courgettes",80,"g",3],["Nouilles de riz",60,"g",5],["Sauce soja",15,"ml",7],["Miel",5,"g",7],["Gingembre frais",3,"g",3],["Huile d'olive",10,"ml",7]],
+s:"Saisir boeuf en lanieres feu vif, reserver. Sauter legumes 3 min. Remettre boeuf + sauce. Nouilles cuites."},
+
+{id:67,n:"Daurade au four, courgettes-fenouil, riz complet",c:"din",kcal:620,p:44,l:16,g:68,
+i:[["Daurade entiere",400,"g",1],["Courgettes",150,"g",3],["Fenouil",150,"g",3],["Riz complet",70,"g",5],["Huile d'olive",10,"ml",7],["Thym",2,"g",7],["Aneth",2,"g",7]],
+s:"Daurade videe, incisions, thym + aneth. Legumes autour. Four 25 min a 200°C."},
+
+{id:68,n:"Blanquette de dinde legere, riz",c:"din",kcal:640,p:48,l:16,g:70,
+i:[["Escalope de dinde",200,"g",0],["Carottes",100,"g",3],["Champignons",80,"g",3],["Creme legere 15%",80,"ml",2],["Riz basmati",70,"g",5],["Bouillon de volaille",200,"ml",7],["Farine",10,"g",5]],
+s:"Cuire dinde en morceaux dans le bouillon avec carottes 15 min. Ajouter champignons. Lier avec farine + creme."},
+
+{id:69,n:"Saumon surgele, puree brocoli, quinoa",c:"din",kcal:660,p:44,l:24,g:58,
+i:[["Pave de saumon surgele",180,"g",1],["Brocoli surgele",200,"g",4],["Quinoa",60,"g",5],["Creme legere 15%",30,"ml",2],["Huile d'olive",8,"ml",7],["Aneth",2,"g",7]],
+s:"Cuire saumon au four 15 min. Brocoli vapeur, mixer en puree avec creme. Quinoa cuit."},
+
+{id:70,n:"Hache de boeuf, gratin de courgettes",c:"din",kcal:650,p:48,l:22,g:56,
+i:[["Boeuf hache 5%MG",200,"g",0],["Courgettes",300,"g",3],["Emmental rape",30,"g",2],["Creme legere 15%",50,"ml",2],["Oignon",30,"g",3],["Huile d'olive",8,"ml",7],["Muscade",1,"g",7]],
+s:"Revenir boeuf + oignon. Courgettes en rondelles dans un plat, ajouter boeuf, creme, muscade, emmental. Four 20 min."},
+
+{id:71,n:"Filet de merlu, ratatouille sans tomate, riz",c:"din",kcal:600,p:44,l:14,g:66,
+i:[["Filets de merlu surgele",200,"g",1],["Courgettes",150,"g",3],["Aubergine",100,"g",3],["Fenouil",100,"g",3],["Riz basmati",60,"g",5],["Huile d'olive",10,"ml",7],["Herbes de Provence",2,"g",7]],
+s:"Couper legumes en des, mijoter 20 min a couvert. Poeler merlu 4 min/face."},
+
+{id:72,n:"Poulet coco doux (sans piment), riz thai",c:"din",kcal:680,p:46,l:22,g:72,
+i:[["Blanc de poulet",200,"g",0],["Riz basmati",70,"g",5],["Lait de coco allege",100,"ml",5],["Courgettes",100,"g",3],["Carottes",80,"g",3],["Gingembre frais",3,"g",3],["Sauce soja",10,"ml",7],["Huile d'olive",8,"ml",7]],
+s:"Saisir poulet. Revenir legumes + gingembre. Ajouter lait de coco + soja. Mijoter 10 min."},
+
+{id:73,n:"Papillote de colin, puree de panais, epinards",c:"din",kcal:580,p:42,l:14,g:62,
+i:[["Filet de colin surgele",200,"g",1],["Panais",200,"g",3],["Epinards surgeles",150,"g",4],["Beurre",10,"g",2],["Muscade",1,"g",7],["Aneth",2,"g",7]],
+s:"Colin en papillote avec aneth, 15 min a 180°C. Panais cuits ecrases au beurre. Epinards rechauffes."},
+
+{id:74,n:"Risotto aux crevettes et courgettes",c:"din",kcal:640,p:42,l:16,g:78,
+i:[["Crevettes surgelees",200,"g",1],["Riz arborio",90,"g",5],["Courgettes",150,"g",3],["Oignon",30,"g",3],["Parmesan rape",15,"g",2],["Bouillon de volaille",300,"ml",7],["Huile d'olive",10,"ml",7]],
+s:"Risotto classique: revenir oignon, riz, mouiller au bouillon. Ajouter courgettes en des et crevettes en fin."},
+
+{id:75,n:"Escalope de veau, tagliatelles, champignons",c:"din",kcal:680,p:48,l:20,g:72,
+i:[["Escalope de veau",200,"g",0],["Tagliatelles completes",70,"g",5],["Champignons",120,"g",3],["Creme legere 15%",50,"ml",2],["Persil frais",5,"g",3],["Huile d'olive",10,"ml",7]],
+s:"Saisir veau 3 min/face. Poeler champignons, ajouter creme. Servir sur pates."},
+
+{id:76,n:"Filet de lieu noir, lentilles tiedees, carottes",c:"din",kcal:600,p:46,l:12,g:68,
+i:[["Filet de lieu noir surgele",200,"g",1],["Lentilles vertes",70,"g",5],["Carottes",150,"g",3],["Persil frais",5,"g",3],["Huile d'olive",10,"ml",7],["Moutarde de Dijon",5,"g",7]],
+s:"Lentilles cuites avec carottes. Lieu noir poele 4 min/face. Vinaigrette moutarde sur lentilles."},
+
+{id:77,n:"Emince de boeuf stroganoff leger, riz",c:"din",kcal:670,p:48,l:22,g:66,
+i:[["Rumsteck",200,"g",0],["Riz basmati",70,"g",5],["Champignons",120,"g",3],["Oignon",30,"g",3],["Creme legere 15%",80,"ml",2],["Moutarde de Dijon",10,"g",7],["Huile d'olive",10,"ml",7]],
+s:"Saisir boeuf en lanieres. Revenir oignon + champignons. Ajouter creme + moutarde. Mijoter 5 min."},
+
+{id:78,n:"Gratin de poulet aux legumes d'hiver",c:"din",kcal:660,p:50,l:20,g:62,
+i:[["Blanc de poulet",200,"g",0],["Patate douce",150,"g",3],["Carottes",100,"g",3],["Brocoli surgele",100,"g",4],["Emmental rape",25,"g",2],["Creme legere 15%",60,"ml",2]],
+s:"Cuire poulet en des + legumes. Disposer dans un plat, napper de creme, emmental. Four 15 min."},
+
+{id:79,n:"Curry de crevettes doux, riz basmati",c:"din",kcal:620,p:44,l:16,g:70,
+i:[["Crevettes surgelees",250,"g",1],["Riz basmati",70,"g",5],["Courgettes",100,"g",3],["Carottes",80,"g",3],["Lait de coco allege",80,"ml",5],["Curry doux",3,"g",7],["Oignon",30,"g",3],["Huile d'olive",8,"ml",7]],
+s:"Revenir oignon + legumes. Ajouter curry doux + lait coco. Crevettes en fin, mijoter 5 min."},
+
+{id:80,n:"Poele de dinde aux champignons, puree PDT",c:"din",kcal:640,p:48,l:16,g:66,
+i:[["Escalope de dinde",200,"g",0],["Pommes de terre",200,"g",3],["Champignons",120,"g",3],["Beurre",10,"g",2],["Creme legere 15%",40,"ml",2],["Persil frais",5,"g",3],["Huile d'olive",8,"ml",7]],
+s:"Puree PDT au beurre. Dinde + champignons poeles, deglaces a la creme."},
+
+{id:81,n:"Dos de saumon surgele, ecrase PDT-epinards",c:"din",kcal:660,p:42,l:24,g:62,
+i:[["Pave de saumon surgele",180,"g",1],["Pommes de terre",180,"g",3],["Epinards surgeles",150,"g",4],["Creme legere 15%",30,"ml",2],["Huile d'olive",8,"ml",7],["Aneth",2,"g",7],["Muscade",1,"g",7]],
+s:"Saumon au four 15 min. PDT cuites ecrasees avec epinards rechauffes + creme + muscade."},
+
+{id:82,n:"Wok de poulet, legumes croquants, nouilles soba",c:"din",kcal:650,p:48,l:16,g:68,
+i:[["Blanc de poulet",200,"g",0],["Nouilles soba",60,"g",5],["Brocoli surgele",100,"g",4],["Carottes",80,"g",3],["Courgettes",80,"g",3],["Sauce soja",15,"ml",7],["Gingembre frais",3,"g",3],["Huile de sesame",5,"ml",7],["Huile d'olive",8,"ml",7]],
+s:"Nouilles cuites. Saisir poulet feu vif. Sauter legumes 3 min. Remettre poulet + sauce soja + gingembre."},
+
+{id:83,n:"Filets de sole meuniere, riz, fenouil",c:"din",kcal:600,p:42,l:16,g:64,
+i:[["Filets de sole surgele",200,"g",1],["Riz basmati",60,"g",5],["Fenouil",200,"g",3],["Beurre",10,"g",2],["Farine",10,"g",5],["Persil frais",5,"g",3]],
+s:"Fariner sole legerement, poeler au beurre 2-3 min/face. Fenouil braise. Persil frais."},
+
+{id:84,n:"Boulettes de boeuf, puree carottes, petits pois",c:"din",kcal:660,p:46,l:20,g:68,
+i:[["Boeuf hache 5%MG",200,"g",0],["Carottes",250,"g",3],["Petits pois surgeles",100,"g",4],["Oeufs",1,"pc",2],["Chapelure complete",15,"g",5],["Beurre",10,"g",2],["Muscade",1,"g",7],["Huile d'olive",8,"ml",7]],
+s:"Boulettes: boeuf + oeuf + chapelure, former, poeler. Puree carottes. Petits pois vapeur."},
+
+{id:85,n:"Pave de thon surgele, riz, haricots verts",c:"din",kcal:620,p:48,l:14,g:64,
+i:[["Pave de thon surgele",200,"g",1],["Riz basmati",70,"g",5],["Haricots verts surgeles",150,"g",4],["Huile d'olive",10,"ml",7],["Herbes de Provence",2,"g",7]],
+s:"Thon poele 2-3 min/face (garder rose). Riz et haricots verts a cote."},
+
+{id:86,n:"Gratin de pates au poulet et brocoli",c:"din",kcal:680,p:50,l:20,g:70,
+i:[["Blanc de poulet",200,"g",0],["Pates completes",70,"g",5],["Brocoli surgele",150,"g",4],["Creme legere 15%",60,"ml",2],["Emmental rape",25,"g",2],["Muscade",1,"g",7]],
+s:"Cuire pates et brocoli. Poulet en des revenu. Tout dans un plat + creme + emmental. Four 15 min."},
+
+{id:87,n:"Filet de cabillaud roti, ecrase de patate douce, epinards",c:"din",kcal:600,p:44,l:14,g:66,
+i:[["Filet de cabillaud",200,"g",1],["Patate douce",200,"g",3],["Epinards surgeles",150,"g",4],["Huile d'olive",10,"ml",7],["Aneth",2,"g",7],["Muscade",1,"g",7]],
+s:"Cabillaud au four 12 min. Patate douce ecrasee. Epinards rechauffes."},
+
+{id:88,n:"Poele de veau, tagliatelles, courgettes creme",c:"din",kcal:670,p:46,l:22,g:66,
+i:[["Escalope de veau",200,"g",0],["Tagliatelles completes",70,"g",5],["Courgettes",200,"g",3],["Creme legere 15%",50,"ml",2],["Parmesan rape",10,"g",2],["Huile d'olive",10,"ml",7]],
+s:"Saisir veau. Courgettes en rondelles poelees + creme + parmesan. Servir sur pates."},
+
+{id:89,n:"Poulet au miel et moutarde, puree PDT, brocoli",c:"din",kcal:680,p:48,l:18,g:72,
+i:[["Blanc de poulet",200,"g",0],["Pommes de terre",200,"g",3],["Brocoli surgele",150,"g",4],["Miel",10,"g",7],["Moutarde de Dijon",10,"g",7],["Beurre",10,"g",2],["Huile d'olive",8,"ml",7]],
+s:"Cuire poulet, glacer miel + moutarde. Puree PDT au beurre. Brocoli vapeur."},
+
+{id:90,n:"Papillote de saumon surgele, boulgour, fenouil",c:"din",kcal:660,p:42,l:24,g:60,
+i:[["Pave de saumon surgele",180,"g",1],["Boulgour",70,"g",5],["Fenouil",200,"g",3],["Huile d'olive",8,"ml",7],["Aneth",2,"g",7],["Thym",2,"g",7]],
+s:"Saumon en papillote avec aneth + thym, 15 min a 200°C. Boulgour cuit. Fenouil braise."}
+];
+
+</script>
+
+<script>
+var RY=["Boucherie/Volaille","Poissonnerie/Surgeles mer","Oeufs/Cremerie","Fruits & Legumes","Surgeles legumes","Epicerie seche","Oleagineux/Graines","Condiments"];
+
+var cart=[],shopCk={},openIds=new Set(),catOpen={dej:true,coll:true,din:true},portions={dej:1,coll:1,din:2};
+var isSharedView=false;
+var LSC='mp3_cart',LSS='mp3_shop',LST='mp3_set';
+
+function ld(){
+try{cart=JSON.parse(localStorage.getItem(LSC))||[]}catch(e){cart=[]}
+try{shopCk=JSON.parse(localStorage.getItem(LSS))||{}}catch(e){shopCk={}}
+try{var s=JSON.parse(localStorage.getItem(LST));if(s)portions=s}catch(e){}
+document.getElementById('sv-dej').value=portions.dej;
+document.getElementById('sv-coll').value=portions.coll;
+document.getElementById('sv-din').value=portions.din;
+var h=window.location.hash;
+if(h.indexOf('#share=')===0){
+try{
+var d=JSON.parse(decodeURIComponent(atob(h.substring(7))));
+if(d.c){cart=d.c;saveC()}
+if(d.p){portions=d.p;document.getElementById('sv-dej').value=portions.dej;document.getElementById('sv-coll').value=portions.coll;document.getElementById('sv-din').value=portions.din;saveSt()}
+isSharedView=true;
+document.getElementById('shared-banner').style.display='block';
+setTimeout(function(){document.getElementById('shared-banner').style.display='none'},5000);
+go('shop');
+}catch(e){console.log('Share parse error',e)}
+}
+}
+function saveC(){try{localStorage.setItem(LSC,JSON.stringify(cart))}catch(e){}}
+function saveSh(){try{localStorage.setItem(LSS,JSON.stringify(shopCk))}catch(e){}}
+function saveSt(){portions.dej=+document.getElementById('sv-dej').value;portions.coll=+document.getElementById('sv-coll').value;portions.din=+document.getElementById('sv-din').value;try{localStorage.setItem(LST,JSON.stringify(portions))}catch(e){};renderR()}
+function port(c){return portions[c]||1}
+
+function go(p){
+document.querySelectorAll('.pg').forEach(function(e){e.classList.remove('on')});
+document.querySelectorAll('.nb').forEach(function(e){e.classList.remove('on')});
+document.getElementById('p-'+p).classList.add('on');
+var idx={recipes:0,cart:1,shop:2}[p];
+document.querySelectorAll('.nb')[idx].classList.add('on');
+if(p==='cart')renderCart();if(p==='shop')genShop();
+}
+function updB(){var b=document.getElementById('cbdg');if(cart.length){b.style.display='flex';b.textContent=cart.length}else b.style.display='none'}
+function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.style.display='block';clearTimeout(t._tid);t._tid=setTimeout(function(){t.style.display='none'},2200)}
+
+function renderR(){
+var q=(document.getElementById('search').value||'').toLowerCase();
+var el=document.getElementById('rlist');
+var cats=[{k:'dej',l:'Dejeuner',n:0},{k:'coll',l:'Collation',n:0},{k:'din',l:'Diner',n:0}];
+var byCat={dej:[],coll:[],din:[]};
+RECIPES.forEach(function(r){if(q&&r.n.toLowerCase().indexOf(q)<0)return;byCat[r.c].push(r)});
+var html='';
+cats.forEach(function(cat){
+var rs=byCat[cat.k];if(!rs.length)return;
+var isOpen=catOpen[cat.k];
+html+='<div class="csec"><div class="csh '+cat.k+'" onclick="togCat(\''+cat.k+'\')">';
+html+='<span class="arr'+(isOpen?' open':'')+'">&#9654;</span>'+cat.l;
+html+='<span class="cnt">'+rs.length+' recette'+(rs.length>1?'s':'')+'</span></div>';
+html+='<div class="csb'+(isOpen?' open':'')+'">';
+rs.forEach(function(r){
+var isOp=openIds.has(r.id);var inC=cart.indexOf(r.id)>=0;var pt=port(r.c);
+html+='<div class="rc"><div class="rch">';
+html+='<span class="arrow'+(isOp?' open':'')+'" onclick="togR('+r.id+')">&#9654;</span>';
+html+='<span class="rcn" onclick="togR('+r.id+')">'+r.n+'</span>';
+html+='<span class="tg m">'+r.kcal+'</span>';
+html+='<button class="cart-btn '+(inC?'rm':'add')+'" onclick="'+(inC?'rmC('+r.id+')':'addC('+r.id+')')+'">'+(inC?'&minus;':'+')+' </button>';
+html+='</div><div class="rcb'+(isOp?' open':'')+'">';
+html+='<div style="display:flex;gap:8px;margin-bottom:6px;flex-wrap:wrap"><span class="tg m">'+r.p+'g prot</span><span class="tg m">'+r.l+'g lip</span><span class="tg m">'+r.g+'g glu</span></div>';
+r.i.forEach(function(ing){
+var qty=ing[1]*pt;var u=ing[2];var qs='';
+if(u==='g'||u==='ml'){qs=qty>=1000?(qty/1000).toFixed(1).replace('.0','')+'kg':Math.round(qty)+(u==='ml'?'ml':'g')}
+else if(u==='pc'){qs=qty%1===0?''+qty:''+qty.toFixed(1)}else qs=''+qty;
+html+='<div class="ing"><span>'+ing[0]+'</span><span class="q">'+qs+'</span></div>';
+});
+if(pt>1)html+='<div class="pnote">Quantites pour '+pt+' pers.</div>';
+if(r.s){
+var steps=r.s.split('. ').filter(function(x){return x.trim().length>2});
+html+='<div class="steps">';
+steps.forEach(function(st,si){html+='<div class="step"><span class="sn">'+(si+1)+'</span><span>'+st.trim().replace(/\.$/,'')+'.</span></div>'});
+html+='</div>';}
+html+='</div></div>';
+});
+html+='</div></div>';
+});
+el.innerHTML=html||'<div class="empty">Aucune recette trouvee</div>';
+}
+function togR(id){if(openIds.has(id))openIds.delete(id);else openIds.add(id);renderR()}
+function togCat(c){catOpen[c]=!catOpen[c];renderR()}
+function expandAll(){RECIPES.forEach(function(r){openIds.add(r.id)});catOpen={dej:true,coll:true,din:true};renderR()}
+function collapseAll(){openIds.clear();renderR()}
+function addC(id){if(cart.indexOf(id)<0){cart.push(id);saveC();updB();renderR();toast('Ajoute au panier !')}}
+function rmC(id){cart=cart.filter(function(x){return x!==id});saveC();updB();renderR();renderCart();toast('Retire du panier')}
+
+function renderCart(){
+var el=document.getElementById('cartlist');var gb=document.getElementById('gen-btn');var sb=document.getElementById('share-btn');
+if(!cart.length){el.innerHTML='<div class="empty">Panier vide.<br>Ajoute des recettes depuis l\'onglet Recettes !</div>';gb.style.display='none';sb.style.display='none';return}
+gb.style.display='block';sb.style.display='block';
+var html='';var byC={dej:[],coll:[],din:[]};
+cart.forEach(function(id){var r=RECIPES.find(function(x){return x.id===id});if(r)byC[r.c].push(r)});
+[{k:'dej',l:'Dejeuners'},{k:'coll',l:'Collations'},{k:'din',l:'Diners'}].forEach(function(cat){
+if(!byC[cat.k].length)return;
+html+='<div style="font-size:11px;font-weight:700;color:var(--mu);margin:8px 0 4px;text-transform:uppercase">'+cat.l+' ('+byC[cat.k].length+')</div>';
+byC[cat.k].forEach(function(r){
+html+='<div class="ci '+r.c+'"><span class="nm">'+r.n+'</span><span class="ct">x'+port(r.c)+'</span><button class="x" onclick="rmC('+r.id+')">&times;</button></div>';
+});
+});
+el.innerHTML=html;
+}
+
+function genShop(){
+var agg={};
+cart.forEach(function(id){
+var r=RECIPES.find(function(x){return x.id===id});if(!r)return;
+var pt=port(r.c);
+r.i.forEach(function(ing){
+var k=ing[0]+'|'+ing[3];
+if(!agg[k])agg[k]={n:ing[0],q:0,u:ing[2],r:ing[3],rc:[]};
+agg[k].q+=ing[1]*pt;
+var rn=r.n.length>28?r.n.substring(0,28)+'...':r.n;
+if(agg[k].rc.indexOf(rn)<0)agg[k].rc.push(rn);
+});
+});
+var items=Object.values(agg);
+var el=document.getElementById('shoplist');
+var eb=document.getElementById('exp-btn');var rb=document.getElementById('raz-btn');var sb2=document.getElementById('share-btn2');
+var sum=document.getElementById('shop-summary');
+if(!items.length){el.innerHTML='<div class="empty">Ajoute des recettes au panier d\'abord.</div>';eb.style.display='none';rb.style.display='none';sb2.style.display='none';sum.textContent='';return}
+eb.style.display='block';rb.style.display='block';sb2.style.display='block';
+sum.textContent=items.length+' articles pour '+cart.length+' recettes';
+var byR={};items.forEach(function(it){if(!byR[it.r])byR[it.r]=[];byR[it.r].push(it)});
+var html='';
+RY.forEach(function(rn,ri){
+if(!byR[ri])return;
+var rItems=byR[ri];var rDn=rItems.filter(function(x){return shopCk[x.n+'|'+x.r]}).length;
+html+='<div class="sray"><div class="srh">'+rn+'<span style="opacity:.6"> '+rDn+'/'+rItems.length+'</span></div><div class="srb">';
+var pend=[],done=[];
+rItems.forEach(function(it){
+var k=it.n+'|'+it.r;var isDn=!!shopCk[k];
+var qs='';
+if(it.u==='g'||it.u==='ml'){qs=it.q>=1000?(it.q/1000).toFixed(1).replace('.0','')+'kg':Math.round(it.q)+(it.u==='ml'?'ml':'g')}
+else if(it.u==='pc')qs=''+Math.ceil(it.q);
+var line='<div class="si'+(isDn?' dn':'')+'" onclick="togSh(\''+k.replace(/'/g,"\\'")+'\')">';
+line+='<div class="ck"></div><div style="flex:1"><div class="sn">'+it.n+'</div><div class="sr">'+it.rc.join(', ')+'</div></div>';
+if(qs)line+='<div class="sq">'+qs+'</div>';
+line+='</div>';
+if(isDn)done.push(line);else pend.push(line);
+});
+html+=pend.join('')+done.join('')+'</div></div>';
+});
+el.innerHTML=html;
+}
+function togSh(k){shopCk[k]=!shopCk[k];saveSh();genShop()}
+function razShop(){shopCk={};saveSh();genShop()}
+
+function shareList(){
+var payload=btoa(encodeURIComponent(JSON.stringify({c:cart,p:portions})));
+var base=window.location.href.split('#')[0];
+var url=base+'#share='+payload;
+if(navigator.share){
+navigator.share({title:'Liste de courses',text:'Voici la liste de courses !',url:url}).catch(function(){});
+}else if(navigator.clipboard){
+navigator.clipboard.writeText(url).then(function(){toast('Lien copie ! Envoie-le par message.')}).catch(function(){prompt('Copie ce lien :',url)});
+}else{prompt('Copie ce lien et envoie-le :',url)}
+}
+
+ld();updB();renderR();
+</script>
+</body>
+</html>
